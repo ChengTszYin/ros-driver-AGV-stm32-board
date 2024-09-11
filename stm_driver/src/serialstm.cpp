@@ -18,8 +18,6 @@ SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
     }
 }
 
-
-
 uint8_t SerialSTM::getcrc(uint8_t* Bytecode, int len)
 {
     uint8_t sum = 0;
@@ -46,7 +44,7 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
 {   
     if(!ser.isOpen())
     {
-        cout << "serial port is not opened" << endl;
+        cout << "serial port is not opened" << endl; 
         return;
     }
     recvmsg->leftID = bufferArray[1];
@@ -61,8 +59,10 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
     recvmsg->gyro_z = ((bufferArray[17] << 8) &  0xFF) | (bufferArray[18] & 0xFF);
     recvmsg->sensor1 = ((bufferArray[19] << 8) & 0xFF) | (bufferArray[20] & 0xFF);
     recvmsg->sensor2 = ((bufferArray[21] << 8) & 0xFF) | (bufferArray[22] & 0xFF);
-    recvmsg->sensor3 = ((bufferArray[23] << 8) & 0xFF) | (bufferArray[24] & 0xFF);
-    recvmsg->sensor4 = ((bufferArray[25] << 8) & 0xFF) | (bufferArray[26] & 0xFF);
+    recvmsg->d80nk1 = (bufferArray[23]);
+    recvmsg->d80nk2 = (bufferArray[24]);
+    recvmsg->d80nk3 = (bufferArray[25]);
+    recvmsg->d80nk4 = (bufferArray[26]);
 }
 
 void SerialSTM::putSpeed(Hostmessage* hostmsg)

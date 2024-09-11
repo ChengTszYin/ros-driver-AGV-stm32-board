@@ -9,8 +9,8 @@ struct Hostmessage
 {
     uint8_t leftID = 0x01;
     uint8_t rightID = 0x02;
-    int leftspeed = 50;
-    int rightspeed = 50;
+    int leftspeed = 0;
+    int rightspeed = 0;
 };
 
 struct recvMessage
@@ -27,8 +27,10 @@ struct recvMessage
     int16_t gyro_z; 
     int16_t sensor1;
     int16_t sensor2;
-    int16_t sensor3;
-    int16_t sensor4;
+    uint8_t d80nk1;
+    uint8_t d80nk2;
+    uint8_t d80nk3;
+    uint8_t d80nk4;
 };
 
 class SerialSTM {

@@ -106,7 +106,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES my_board_debug serialstm
+ LIBRARIES my_board_debug serialstm config_robot
  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs serial std_msgs
  DEPENDS system_lib
 )
@@ -129,6 +129,10 @@ add_library(my_board_debug
 
 add_library(serialstm
   src/serialstm.cpp
+)
+
+add_library(config_robot
+  src/config_robot.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -155,6 +159,7 @@ add_executable(board_debug_node src/board_debug_node.cpp)
 target_link_libraries(board_debug_node
   my_board_debug
   serialstm
+  config_robot
   ${catkin_LIBRARIES}
 )
 

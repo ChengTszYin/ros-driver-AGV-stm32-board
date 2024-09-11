@@ -1,0 +1,3 @@
+baseType='differential'
+wheelRadius=100.7
+wheelBase=300.0

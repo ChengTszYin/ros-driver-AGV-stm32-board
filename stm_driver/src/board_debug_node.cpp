@@ -1,11 +1,12 @@
-#include <ros/ros.h>
-#include <std_msgs/String.h>
-#include "my_board_debug.h"
-#include "serialstm.h"
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include "my_board_debug.h"
+#include "config_robot.h"
+#include "serialstm.h"
 
 using namespace std;
 
@@ -24,12 +25,14 @@ int main(int argc, char** argv)
     ros::init(argc, argv,"my_serial_port");
     ros::NodeHandle n;
 
+    
+
     SerialSTM serial("/dev/ttyUSB0", 115200);
     recvMessage recv;
     Hostmessage hostmsg;
-    hostmsg.leftspeed = 0;
-    hostmsg.rightspeed = 0;
-
+    hostmsg.leftspeed = 10;
+    hostmsg.rightspeed = 10;
+    robot myrobot;
     ros::Rate loop_rate(50);
 	
 	//data 为发送数据
@@ -39,7 +42,7 @@ int main(int argc, char** argv)
     while( ros::ok() )
     {
         serial.putSpeed(&hostmsg);
-        cout << "sent" << endl;
+        //cout << "sent" << endl;
 
         uint8_t bufferArray[28];
         serial.serial_read(result);
@@ -54,20 +57,22 @@ int main(int argc, char** argv)
             serial.readSpeed(&recv, bufferArray);
         }
         // Output the result
-        // cout << "lID: " << " " << lID << endl;
-        // cout << "rID: " << " " << rID << endl;
-        // cout << "Lspeed: " << " " << Lspeed << endl;
-        // cout << "Rspeed: " << " " << Rspeed << endl;
-        // cout << "accel_x: " << " " << accel_x << endl;
-        // cout << "accel_y: " << " " << accel_y << endl;
-        // cout << "accel_z: " << " " << accel_z << endl;
-        // cout << "gyro_x: " << " " << gyro_x << endl;
-        // cout << "gyro_y: " << " " << gyro_y << endl;
-        // cout << "gyro_z: " << " " << gyro_z << endl;
-        // cout << "sensor1: " << " " << sensor1 << endl;
-        // cout << "sensor2: " << " " << sensor2 << endl;
-        // cout << "sensor3: " << " " << sensor3 << endl;
-        // cout << "sensor4: " << " " << sensor4 << endl;
+        cout << "lID: " << " " << recv.leftID << endl;
+        cout << "rID: " << " " << recv.rightID << endl;
+        cout << "Lspeed: " << " " << recv.leftspeed << endl;
+        cout << "Rspeed: " << " " << recv.rightspeed << endl;
+        cout << "accel_x: " << " " << recv.acc_x << endl;
+        cout << "accel_y: " << " " << recv.acc_y << endl;
+        cout << "accel_z: " << " " << recv.acc_z << endl;
+        cout << "gyro_x: " << " " << recv.gyro_x << endl;
+        cout << "gyro_y: " << " " << recv.gyro_y << endl;
+        cout << "gyro_z: " << " " << recv.gyro_z << endl;
+        cout << "sensor1: " << " " << recv.sensor1 << endl;
+        cout << "sensor2: " << " " << recv.sensor2 << endl;
+        cout << "d80nk1: " << " " << recv.d80nk1 << endl;
+        cout << "d80nk2: " << " " << recv.d80nk2 << endl;
+        cout << "d80nk3: " << " " << recv.d80nk3 << endl;
+        cout << "d80nk4: " << " " << recv.d80nk4 << endl;
     }
     return 0;
 }
