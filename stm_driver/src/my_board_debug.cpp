@@ -1,6 +1,16 @@
 #include "my_board_debug.h"
 #include <iostream>
 
+uint8_t checksum(uint8_t data[], int len)
+{
+	int16_t crc = 0;
+	for(int i = 0; i < len; i++)
+	{
+		crc = (crc + data[i]) & 0xFF;
+	}
+	return crc;
+}
+
 
 uint8_t reverseBits(uint8_t value)
 {

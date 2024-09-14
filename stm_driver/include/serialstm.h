@@ -3,6 +3,11 @@
 #include<iostream>
 #include <serial/serial.h>
 #include "my_board_debug.h"
+#include <ros/ros.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#include <sensor_msgs/Range.h> 
+#include <sensor_msgs/Imu.h>
+#include <std_msgs/Int8MultiArray.h>
 using namespace std;
 
 struct Hostmessage 
@@ -38,6 +43,17 @@ class SerialSTM {
         string port = "COM4";
         int baud = 115200;
         serial::Serial ser;
+        ros::NodeHandle n_ser;
+        geometry_msgs::Vector3Stamped speed_msgs;
+        sensor_msgs::Range front_dist;
+        sensor_msgs::Range back_dist;
+        sensor_msgs::Imu imu_msgs;
+        std_msgs::Int8MultiArray wsad;
+        ros::Publisher  ser_pub;
+        ros::Publisher  front_pub;
+        ros::Publisher  back_pub;
+        ros::Publisher  imu_pub;
+        ros::Publisher  wsad_pub;
 
     public:
         SerialSTM(string port, int baud);

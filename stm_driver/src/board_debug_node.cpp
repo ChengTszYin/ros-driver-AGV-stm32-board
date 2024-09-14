@@ -3,22 +3,13 @@
 #include <sstream>
 #include <vector>
 #include <ros/ros.h>
-#include <std_msgs/String.h>
 #include "my_board_debug.h"
 #include "config_robot.h"
 #include "serialstm.h"
+#include <std_msgs/String.h>
 
 using namespace std;
 
-uint8_t checksum(uint8_t data[], int len)
-{
-	int16_t crc = 0;
-	for(int i = 0; i < len; i++)
-	{
-		crc = (crc + data[i]) & 0xFF;
-	}
-	return crc;
-}
 
 int main(int argc, char** argv)
 {

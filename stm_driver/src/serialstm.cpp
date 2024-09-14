@@ -16,6 +16,11 @@ SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
         cout << "Unable to open port: " << e.what() << endl;
         throw;
     }
+    ser_pub = n_ser.advertise<geometry_msgs::Vector3Stamped> ("speed", 1000);
+    front_pub = n_ser.advertise<sensor_msgs::Range> ("front_dist", 1000);
+    back_pub = n_ser.advertise<sensor_msgs::Range> ("back_dist", 1000);
+    imu_pub = n_ser.advertise<sensor_msgs::Imu> ("imu", 1000);
+    wsad_pub = n_ser.advertise<std_msgs::Int8MultiArray> ("WSAD", sizeof(wsad));
 }
 
 uint8_t SerialSTM::getcrc(uint8_t* Bytecode, int len)
@@ -63,6 +68,35 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
     recvmsg->d80nk2 = (bufferArray[24]);
     recvmsg->d80nk3 = (bufferArray[25]);
     recvmsg->d80nk4 = (bufferArray[26]);
+
+    speed_msgs.header.stamp = ros::Time::now();
+    speed_msgs.vector.x = recvmsg -> leftspeed;
+    speed_msgs.vector.y = recvmsg -> rightspeed;
+    ser_pub.publish(speed_msgs);
+
+    front_dist.min_range = 20.0;
+    front_dist.max_range = 720.0;
+    front_dist.range = recvmsg -> sensor1;
+    front_dist.header.stamp = ros::Time::now();
+    front_pub.publish(front_dist);
+
+    back_dist.min_range = 20.0;
+    back_dist.max_range = 720.0;
+    back_dist.range = recvmsg -> sensor2;
+    back_dist.header.stamp = ros::Time::now();
+    back_pub.publish(back_dist);
+
+    imu_msgs.linear_acceleration.x = recvmsg -> acc_x;
+    imu_msgs.linear_acceleration.y = recvmsg -> acc_y;
+    imu_msgs.linear_acceleration.z = recvmsg -> acc_z;
+    imu_msgs.angular_velocity.x = recvmsg -> gyro_x;
+    imu_msgs.angular_velocity.y = recvmsg -> gyro_y;
+    imu_msgs.angular_velocity.z = recvmsg -> gyro_z;
+    imu_msgs.header.stamp = ros::Time::now();
+    imu_pub.publish(imu_msgs);
+
+    wsad.data = {recvmsg->d80nk1 - 48, recvmsg->d80nk2 - 48, recvmsg->d80nk3 - 48, recvmsg->d80nk4 - 48};
+    wsad_pub.publish(wsad);
 }
 
 void SerialSTM::putSpeed(Hostmessage* hostmsg)
