@@ -7,13 +7,11 @@
 #include <vector>
 
 class robot
-{
-    private:
+{        
+    public:
         std::string baseType;
         float wheelRadius;
         float wheelBase;
-
-    public:
         robot();
 };
 

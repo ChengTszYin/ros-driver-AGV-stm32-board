@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   serial
   std_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES my_board_debug serialstm config_robot
- CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs serial std_msgs
+ CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs serial std_msgs nav_msgs tf
  DEPENDS system_lib
 )
 
@@ -145,6 +146,8 @@ add_library(config_robot
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(board_debug_node src/board_debug_node.cpp)
 
+add_executable(odom_publisher src/odom_publisher.cpp)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -162,6 +165,13 @@ target_link_libraries(board_debug_node
   config_robot
   ${catkin_LIBRARIES}
 )
+
+target_link_libraries(odom_publisher
+  serialstm
+  config_robot
+  ${catkin_LIBRARIES}
+)
+
 
 #############
 ## Install ##
