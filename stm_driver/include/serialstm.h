@@ -1,6 +1,7 @@
 #ifndef SERIALSTM_H
 #define SERIALSTM_H
 #include<iostream>
+#include<cmath>
 #include <serial/serial.h>
 #include "my_board_debug.h"
 #include <ros/ros.h>
@@ -8,6 +9,7 @@
 #include <sensor_msgs/Range.h> 
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int8MultiArray.h>
+#include "config_robot.h"
 using namespace std;
 
 struct Hostmessage 
@@ -61,6 +63,7 @@ class SerialSTM {
         void putSpeed(Hostmessage* hostmsg);
         uint8_t getcrc(uint8_t* Bytecode, int len);
         int serial_read(std::string &result);
+        robot myrobot;
 
 };
 

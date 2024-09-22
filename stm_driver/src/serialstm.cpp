@@ -53,9 +53,9 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
         return;
     }
     recvmsg->leftID = bufferArray[1];
-    recvmsg->leftspeed = ((bufferArray[2] << 8) &  0xFF) | (bufferArray[3] & 0xFF);
+    recvmsg->leftspeed = (int16_t)((bufferArray[2] << 8) | (bufferArray[3] & 0xFF));
     recvmsg->rightID = bufferArray[4] & 0xFF;
-    recvmsg->rightspeed = ((bufferArray[5] << 8) &  0xFF) | (bufferArray[6] & 0xFF);
+    recvmsg->rightspeed = (int16_t)((bufferArray[5] << 8) | (bufferArray[6] & 0xFF));
     recvmsg->acc_x = ((bufferArray[7] << 8) &  0xFF) | (bufferArray[8] & 0xFF);
     recvmsg->acc_y = ((bufferArray[9] << 8) &  0xFF) | (bufferArray[10] & 0xFF);
     recvmsg->acc_z = ((bufferArray[11] << 8) &  0xFF) | (bufferArray[12] & 0xFF);
@@ -70,8 +70,10 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
     recvmsg->d80nk4 = (bufferArray[26]);
 
     speed_msgs.header.stamp = ros::Time::now();
-    speed_msgs.vector.x = recvmsg -> leftspeed;
-    speed_msgs.vector.y = recvmsg -> rightspeed;
+    int l_speed = recvmsg -> leftspeed;
+    int r_speed = recvmsg -> rightspeed;
+    speed_msgs.vector.x = (l_speed/myrobot.wheelRadius) * (60/M_PI);
+    speed_msgs.vector.y = (r_speed/myrobot.wheelRadius) * (60/M_PI);
     ser_pub.publish(speed_msgs);
 
     front_dist.min_range = 20.0;

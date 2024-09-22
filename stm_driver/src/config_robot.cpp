@@ -2,7 +2,7 @@
 
 robot::robot()
 {
-   std::ifstream file_("/home/dllm/mcu_driver/src/stm_driver/cfg/config.txt"); //absolute directory 
+   std::ifstream file_("/home/dllm/bme_ws/src/stm_driver/cfg/config.txt"); //absolute directory 
    if(file_.is_open())
    {
       std::vector<std::string> _val;
