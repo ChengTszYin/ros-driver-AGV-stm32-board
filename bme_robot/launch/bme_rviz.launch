@@ -3,10 +3,11 @@
 
 	<param name="robot_description" command="cat $(find bme_robot)/urdf/bme.urdf" />
 	
-        <group if="$(arg gui)">
+        <!-- <group if="$(arg gui)">
         	<node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
-	</group>
-        <group unless="$(arg gui)">
+		</group> -->
+	
+	<group unless="$(arg gui)">
 		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
 	</group>
 	

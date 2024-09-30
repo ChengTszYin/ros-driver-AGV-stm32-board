@@ -1,4 +1,5 @@
 #include "serialstm.h"
+double LOOPTIME =100;
 
 SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
 {   
@@ -33,7 +34,7 @@ uint8_t SerialSTM::getcrc(uint8_t* Bytecode, int len)
     return sum;
 }
 
-int SerialSTM::serial_read(std::string &result)
+int SerialSTM::notopen(std::string &result)
 {
     if(!ser.isOpen())
     {
@@ -68,14 +69,33 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
     recvmsg->d80nk2 = (bufferArray[24]);
     recvmsg->d80nk3 = (bufferArray[25]);
     recvmsg->d80nk4 = (bufferArray[26]);
+}
 
+void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
+{
     speed_msgs.header.stamp = ros::Time::now();
     int l_speed = recvmsg -> leftspeed;
     int r_speed = recvmsg -> rightspeed;
-    speed_msgs.vector.x = (l_speed/myrobot.wheelRadius) * (60/M_PI);
-    speed_msgs.vector.y = (r_speed/myrobot.wheelRadius) * (60/M_PI);
+    speed_msgs.vector.x = l_speed;
+    speed_msgs.vector.y = r_speed;
+    speed_msgs.vector.z = time / 1000;
     ser_pub.publish(speed_msgs);
+}
 
+void SerialSTM::IMUPublish(recvMessage* recvmsg)
+{
+    imu_msgs.linear_acceleration.x = recvmsg -> acc_x;
+    imu_msgs.linear_acceleration.y = recvmsg -> acc_y;
+    imu_msgs.linear_acceleration.z = recvmsg -> acc_z;
+    imu_msgs.angular_velocity.x = recvmsg -> gyro_x;
+    imu_msgs.angular_velocity.y = recvmsg -> gyro_y;
+    imu_msgs.angular_velocity.z = recvmsg -> gyro_z;
+    imu_msgs.header.stamp = ros::Time::now();
+    imu_pub.publish(imu_msgs);
+}
+
+void SerialSTM::distancePublish(recvMessage* recvmsg)
+{
     front_dist.min_range = 20.0;
     front_dist.max_range = 720.0;
     front_dist.range = recvmsg -> sensor1;
@@ -87,19 +107,14 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
     back_dist.range = recvmsg -> sensor2;
     back_dist.header.stamp = ros::Time::now();
     back_pub.publish(back_dist);
+}
 
-    imu_msgs.linear_acceleration.x = recvmsg -> acc_x;
-    imu_msgs.linear_acceleration.y = recvmsg -> acc_y;
-    imu_msgs.linear_acceleration.z = recvmsg -> acc_z;
-    imu_msgs.angular_velocity.x = recvmsg -> gyro_x;
-    imu_msgs.angular_velocity.y = recvmsg -> gyro_y;
-    imu_msgs.angular_velocity.z = recvmsg -> gyro_z;
-    imu_msgs.header.stamp = ros::Time::now();
-    imu_pub.publish(imu_msgs);
-
+void SerialSTM::bumpPublish(recvMessage* recvmsg)
+{
     wsad.data = {recvmsg->d80nk1 - 48, recvmsg->d80nk2 - 48, recvmsg->d80nk3 - 48, recvmsg->d80nk4 - 48};
     wsad_pub.publish(wsad);
 }
+
 
 void SerialSTM::putSpeed(Hostmessage* hostmsg)
 {

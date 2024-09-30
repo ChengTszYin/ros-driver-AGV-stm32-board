@@ -10,6 +10,7 @@
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int8MultiArray.h>
 #include "config_robot.h"
+
 using namespace std;
 
 struct Hostmessage 
@@ -61,8 +62,12 @@ class SerialSTM {
         SerialSTM(string port, int baud);
         void readSpeed(recvMessage* recvmsg, uint8_t* bufferArray);
         void putSpeed(Hostmessage* hostmsg);
+        void speedPublish(recvMessage* recvmsg, double time);
+        void IMUPublish(recvMessage* recvmsg);
+        void distancePublish(recvMessage* recvmsg);
+        void bumpPublish(recvMessage* recvmsg);
+        int notopen(std::string &result);
         uint8_t getcrc(uint8_t* Bytecode, int len);
-        int serial_read(std::string &result);
         robot myrobot;
 
 };

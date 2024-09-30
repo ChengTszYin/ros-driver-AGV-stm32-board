@@ -10,6 +10,7 @@
 #include <geometry_msgs/Twist.h>
 using namespace std;
 
+double LOOPTIME = 100;
 robot myrobot;
 
 double speed_req = 0;
@@ -30,6 +31,14 @@ void cmd_handle(const geometry_msgs::Twist& cmd_vel)
      ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
 }
 
+void allTopicPublish(SerialSTM* pb, recvMessage* receive)
+{
+    pb->speedPublish(receive, LOOPTIME);
+    pb->IMUPublish(receive);
+    pb->distancePublish(receive);
+    pb->bumpPublish(receive);
+}
+
 
 int main(int argc, char** argv)
 {
@@ -41,17 +50,25 @@ int main(int argc, char** argv)
 
     ros::Subscriber sub = n.subscribe("cmd_vel", 1000, cmd_handle);
   	std::string data, result;
-    ros::Rate loop_rate(50);
+    ros::Rate loop_rate(60);
+    ros::Time last_publish_time = ros::Time::now();
     while( ros::ok() )
     {
     
         uint8_t bufferArray[28];
-        serial.serial_read(result);
+        serial.notopen(result);
         if(result.length()==28){
             for(int i=0;i<28;i++){
                 bufferArray[i] = result[i];
             }
         }
+
+        if((ros::Time::now() - last_publish_time).toSec() * 1000 >= LOOPTIME)
+        {
+            allTopicPublish(&serial, &recv);
+            last_publish_time = ros::Time::now();
+        }
+        
         hostmsg.leftspeed = speed_req_left;
         hostmsg.rightspeed = speed_req_right;
         serial.putSpeed(&hostmsg);
