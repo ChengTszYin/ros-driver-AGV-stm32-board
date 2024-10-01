@@ -22,8 +22,8 @@ double r_rpm = 0;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
-    speed_req = cmd_vel.linear.x * 100;
-    angular_speed_req = cmd_vel.angular.z * 100;
+    speed_req = cmd_vel.linear.x * 5;
+    angular_speed_req = cmd_vel.angular.z / 100;
     speed_req_left = speed_req - (angular_speed_req * (myrobot.wheelBase / 2));
     speed_req_right = speed_req + (angular_speed_req * (myrobot.wheelBase / 2));
     l_rpm = (speed_req_left/myrobot.wheelRadius) * (60/(2 * M_PI));
@@ -75,8 +75,8 @@ int main(int argc, char** argv)
         if (checksum(bufferArray, 28)){
             serial.readSpeed(&recv, bufferArray);
         }
-        hostmsg.leftspeed = speed_req_left * 50;
-        hostmsg.rightspeed = speed_req_right * 50;
+        hostmsg.leftspeed = speed_req_left;
+        hostmsg.rightspeed = speed_req_right;
         ROS_INFO("speed_req_left : %f", speed_req_left);
         ROS_INFO("speed_req_right: %f", speed_req_right);
        
