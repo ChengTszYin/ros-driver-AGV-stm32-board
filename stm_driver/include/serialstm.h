@@ -15,24 +15,36 @@ using namespace std;
 
 struct Hostmessage 
 {
-    uint8_t leftID = 0x01;
-    uint8_t rightID = 0x02;
-    int leftspeed = 0;
-    int rightspeed = 0;
+    uint8_t HleftID = 0x01;
+    uint8_t HrightID = 0x02;
+    uint8_t LleftID = 0x03;
+    uint8_t LrightID = 0x04;
+    int Hleftspeed = 0;
+    int Hrightspeed = 0;
+    int Lleftspeed = 0;
+    int Lrightspeed = 0;
 };
 
 struct recvMessage
 {
-    uint8_t leftID = 0x01;
-    uint8_t rightID = 0x02;
-    int16_t leftspeed = 0;
-    int16_t rightspeed = 0;
+    uint8_t HleftID = 0x01;
+    uint8_t HrightID = 0x02;
+    int16_t Hleftspeed = 0;
+    int16_t Hrightspeed = 0;
+    uint8_t LleftID = 0x01;
+    uint8_t LrightID = 0x02;
+    int16_t Lleftspeed = 0;
+    int16_t Lrightspeed = 0;
     int16_t acc_x;
     int16_t acc_y;
     int16_t acc_z;
     int16_t gyro_x;
     int16_t gyro_y;
     int16_t gyro_z; 
+    int16_t Q0;
+    int16_t Q1;
+    int16_t Q2;
+    int16_t Q3;
     int16_t sensor1;
     int16_t sensor2;
     uint8_t d80nk1;

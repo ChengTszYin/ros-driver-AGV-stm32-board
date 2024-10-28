@@ -55,10 +55,10 @@ int main(int argc, char** argv)
     while( ros::ok() )
     {
     
-        uint8_t bufferArray[28];
+        uint8_t bufferArray[42];
         serial.notopen(result);
-        if(result.length()==28){
-            for(int i=0;i<28;i++){
+        if(result.length()==42){
+            for(int i=0;i<42;i++){
                 bufferArray[i] = result[i];
             }
         }
@@ -69,28 +69,40 @@ int main(int argc, char** argv)
             last_publish_time = ros::Time::now();
         }
         
-        hostmsg.leftspeed = speed_req_left;
-        hostmsg.rightspeed = speed_req_right;
+        hostmsg.Hleftspeed = speed_req_left;
+        hostmsg.Lleftspeed = speed_req_left;
+        hostmsg.Hrightspeed = speed_req_right;
+        hostmsg.Lrightspeed = speed_req_right;
+        // hostmsg.Hleftspeed = 20;
+        // hostmsg.Hrightspeed = 20;
+        // hostmsg.Lleftspeed = 20;
+        // hostmsg.Lrightspeed = 20;
         serial.putSpeed(&hostmsg);
-        if (checksum(bufferArray, 28)){
+        if (checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
-        hostmsg.leftspeed = speed_req_left;
-        hostmsg.rightspeed = speed_req_right;
+        hostmsg.Hleftspeed = speed_req_left;
+        hostmsg.Hrightspeed = speed_req_right;
         ROS_INFO("speed_req_left : %f", speed_req_left);
         ROS_INFO("speed_req_right: %f", speed_req_right);
        
         // Output the result
-        cout << "lID: " << " " << recv.leftID << endl;
-        cout << "rID: " << " " << recv.rightID << endl;
-        cout << "Lspeed: " << " " << recv.leftspeed << endl;
-        cout << "Rspeed: " << " " << recv.rightspeed << endl;
+        cout << "lID: " << " " << recv.HleftID << endl;
+        cout << "rID: " << " " << recv.HrightID << endl;
+        cout << "Hleftspeed: " << " " << recv.Hleftspeed << endl;
+        cout << "Hrightspeed: " << " " << recv.Hrightspeed << endl;
+        cout << "Lleftspeed: " << " " << recv.Lleftspeed << endl;
+        cout << "Lrightspeed: " << " " << recv.Lrightspeed << endl;
         cout << "accel_x: " << " " << recv.acc_x << endl;
         cout << "accel_y: " << " " << recv.acc_y << endl;
         cout << "accel_z: " << " " << recv.acc_z << endl;
         cout << "gyro_x: " << " " << recv.gyro_x << endl;
         cout << "gyro_y: " << " " << recv.gyro_y << endl;
         cout << "gyro_z: " << " " << recv.gyro_z << endl;
+        cout << "q1: " << " " << recv.Q0 << endl;
+        cout << "q2: " << " " << recv.Q1 << endl;
+        cout << "q3: " << " " << recv.Q2 << endl;
+        cout << "q4: " << " " << recv.Q3 << endl;
         cout << "sensor1: " << " " << recv.sensor1 << endl;
         cout << "sensor2: " << " " << recv.sensor2 << endl;
         cout << "d80nk1: " << " " << recv.d80nk1 << endl;
