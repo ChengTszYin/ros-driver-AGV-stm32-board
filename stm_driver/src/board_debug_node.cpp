@@ -69,20 +69,14 @@ int main(int argc, char** argv)
             last_publish_time = ros::Time::now();
         }
         
-        hostmsg.Hleftspeed = speed_req_left;
-        hostmsg.Lleftspeed = speed_req_left;
+        hostmsg.Hleftspeed = -speed_req_left;
+        hostmsg.Lleftspeed = -speed_req_left;
         hostmsg.Hrightspeed = speed_req_right;
         hostmsg.Lrightspeed = speed_req_right;
-        // hostmsg.Hleftspeed = 20;
-        // hostmsg.Hrightspeed = 20;
-        // hostmsg.Lleftspeed = 20;
-        // hostmsg.Lrightspeed = 20;
         serial.putSpeed(&hostmsg);
         if (checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
-        hostmsg.Hleftspeed = speed_req_left;
-        hostmsg.Hrightspeed = speed_req_right;
         ROS_INFO("speed_req_left : %f", speed_req_left);
         ROS_INFO("speed_req_right: %f", speed_req_right);
        
