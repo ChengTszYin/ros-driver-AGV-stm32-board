@@ -17,7 +17,8 @@ SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
         cout << "Unable to open port: " << e.what() << endl;
         throw;
     }
-    ser_pub = n_ser.advertise<geometry_msgs::Vector3Stamped> ("speed", 1000);
+    // ser_pub = n_ser.advertise<geometry_msgs::Vector3Stamped> ("speed", 1000);
+    ser_pub = n_ser.advertise<stm_driver::Wheel>("speed", 1000);
     front_pub = n_ser.advertise<sensor_msgs::Range> ("front_dist", 1000);
     back_pub = n_ser.advertise<sensor_msgs::Range> ("back_dist", 1000);
     imu_pub = n_ser.advertise<sensor_msgs::Imu> ("imu", 1000);
@@ -82,11 +83,15 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
 void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
 {
     speed_msgs.header.stamp = ros::Time::now();
-    int l_speed = recvmsg -> Hleftspeed;
-    int r_speed = recvmsg -> Hrightspeed;
-    speed_msgs.vector.x = l_speed;
-    speed_msgs.vector.y = r_speed;
-    speed_msgs.vector.z = time / 1000;
+    int hl_speed = recvmsg -> Hleftspeed;
+    int hr_speed = recvmsg -> Hrightspeed;
+    int ll_speed = recvmsg -> Lleftspeed;
+    int lr_speed = recvmsg -> Lrightspeed;
+    speed_msgs.TopLeftWheel = hl_speed;
+    speed_msgs.TopRightWheel = hr_speed;
+    speed_msgs.BottomLeftWheel = ll_speed;
+    speed_msgs.BottomRightWheel = lr_speed;
+    speed_msgs.time = time / 1000;
     ser_pub.publish(speed_msgs);
 }
 

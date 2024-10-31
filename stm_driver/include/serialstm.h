@@ -3,9 +3,9 @@
 #include<iostream>
 #include<cmath>
 #include <serial/serial.h>
-#include "my_board_debug.h"
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <stm_driver/Wheel.h>
 #include <sensor_msgs/Range.h> 
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int8MultiArray.h>
@@ -59,7 +59,8 @@ class SerialSTM {
         int baud = 115200;
         serial::Serial ser;
         ros::NodeHandle n_ser;
-        geometry_msgs::Vector3Stamped speed_msgs;
+        // geometry_msgs::Vector3Stamped speed_msgs;
+        stm_driver::Wheel speed_msgs;
         sensor_msgs::Range front_dist;
         sensor_msgs::Range back_dist;
         sensor_msgs::Imu imu_msgs;

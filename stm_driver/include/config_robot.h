@@ -12,6 +12,7 @@ class robot
         std::string baseType;
         float wheelRadius;
         float wheelBase;
+        uint8_t checksum(uint8_t data[], int len);
         robot();
 };
 

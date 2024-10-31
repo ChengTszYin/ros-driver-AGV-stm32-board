@@ -4,7 +4,6 @@
 #include <vector>
 #include <cmath>
 #include <ros/ros.h>
-#include "my_board_debug.h"
 #include "config_robot.h"
 #include "serialstm.h"
 #include <geometry_msgs/Twist.h>
@@ -74,11 +73,11 @@ int main(int argc, char** argv)
         hostmsg.Hrightspeed = speed_req_right;
         hostmsg.Lrightspeed = speed_req_right;
         serial.putSpeed(&hostmsg);
-        if (checksum(bufferArray, 42)){
+        if (myrobot.checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
-        ROS_INFO("speed_req_left : %f", speed_req_left);
-        ROS_INFO("speed_req_right: %f", speed_req_right);
+        // ROS_INFO("speed_req_left : %f", speed_req_left);
+        // ROS_INFO("speed_req_right: %f", speed_req_right);
        
         // Output the result
         cout << "lID: " << " " << recv.HleftID << endl;

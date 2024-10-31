@@ -8,6 +8,7 @@ project(stm_driver)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_runtime
   geometry_msgs
   roscpp
   sensor_msgs
@@ -50,11 +51,12 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
+add_message_files(
+  FILES
+  Wheel.msg
 #   Message1.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -71,10 +73,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometyry_msgs#   sensor_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs#   sensor_msgs#   std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -107,8 +109,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES my_board_debug serialstm config_robot
- CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs serial std_msgs nav_msgs tf
+ LIBRARIES serialstm config_robot
+ CATKIN_DEPENDS message_generation geometry_msgs roscpp sensor_msgs serial std_msgs nav_msgs tf
  DEPENDS system_lib
 )
 
@@ -124,9 +126,9 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(my_board_debug
-  src/my_board_debug.cpp
-)
+# add_library(my_board_debug
+#   src/my_board_debug.cpp
+# )
 
 add_library(serialstm
   src/serialstm.cpp
@@ -160,7 +162,7 @@ add_executable(odom_publisher src/odom_publisher.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(board_debug_node
-  my_board_debug
+  # my_board_debug
   serialstm
   config_robot
   ${catkin_LIBRARIES}
@@ -171,7 +173,6 @@ target_link_libraries(odom_publisher
   config_robot
   ${catkin_LIBRARIES}
 )
-
 
 #############
 ## Install ##

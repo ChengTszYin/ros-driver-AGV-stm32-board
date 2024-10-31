@@ -1,5 +1,15 @@
 #include "config_robot.h"
 
+uint8_t robot::checksum(uint8_t data[], int len)
+{
+	int16_t crc = 0;
+	for(int i = 0; i < len; i++)
+	{
+		crc = (crc + data[i]) & 0xFF;
+	}
+	return crc;
+}
+
 robot::robot()
 {
    std::ifstream file_("/home/dllm/bme_ws/src/stm_driver/cfg/config.txt"); //absolute directory 
