@@ -1,12 +1,16 @@
 #include <iostream>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Vector3.h>
 #include <tf/transform_broadcaster.h>
+#include <stm_driver/Wheel.h>
 #include  "config_robot.h"
 #include <cmath>
 using namespace std;
 
 robot my_robot;
+double speed_act_upper_left = 0.0;
+double speed_act_upper_right = 0.0;
+double speed_act_lower_left = 0.0;
+double speed_act_lower_right = 0.0;
 double speed_act_left = 0.0;
 double speed_act_right = 0.0;
 double speed_dt = 0.0;
@@ -16,12 +20,16 @@ double y_pos = 0.0;
 double theta = 0.0;
 ros::Time speed_time(0.0);
 
-void handle_speed(const geometry_msgs::Vector3Stamped& speed)
+void handle_speed(const stm_driver::Wheel speed)
 {
-    speed_act_left = (speed.vector.x * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_right = (speed.vector.y * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_dt = speed.vector.z;
+    speed_act_upper_left = (speed.TopLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_act_upper_right = (speed.TopRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_act_lower_left = (speed.BottomLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_act_lower_right = (speed.BottomRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_dt = speed.time;
     speed_time = speed.header.stamp;
+    speed_act_left = (speed_act_upper_left + speed_act_lower_left) / 2;
+    speed_act_right = (speed_act_upper_right + speed_act_lower_right) / 2;
     // ROS_INFO("speed_time: %f", speed_time);
     // ROS_INFO("speed_dt : %f", speed_dt);
 }
@@ -63,9 +71,8 @@ int main(int argc, char** argv)
         ros::spinOnce();
 
         dt = speed_dt;
-        dxy = (speed_act_left + speed_act_right)*dt/2;
-        dth = ((speed_act_right - speed_act_left) * dt)/(my_robot.wheelBase/1000);
-        ROS_INFO("my_robot.wheelBase: %f", my_robot.wheelBase/1000);
+        dxy = (speed_act_upper_left + speed_act_upper_right)*dt/2;
+        dth = ((speed_act_upper_right - speed_act_upper_left) * dt)/(my_robot.wheelBase/1000);
         if (dth > 0) dth *= angular_scale_positive;
         if (dth < 0) dth *= angular_scale_negative;
         if (dxy > 0) dxy *= linear_scale_positive;
@@ -108,7 +115,7 @@ int main(int argc, char** argv)
         odom_msg.pose.pose.position.y = y_pos;
         odom_msg.pose.pose.position.z = 0.0;
         odom_msg.pose.pose.orientation = odom_quat;
-        if (speed_act_left == 0 && speed_act_right == 0)
+        if (speed_act_lower_left == 0 && speed_act_lower_right == 0)
         {
             odom_msg.pose.covariance[0] = 1e-9;
             odom_msg.pose.covariance[7] = 1e-3;
@@ -142,8 +149,8 @@ int main(int argc, char** argv)
             odom_msg.twist.covariance[28] = 1e6;
             odom_msg.twist.covariance[35] = 1e3;
         }
-        vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2;
-        vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/(my_robot.wheelBase/1000);
+        vx = (dt == 0)?  0 : (speed_act_upper_left+speed_act_upper_right)/2;
+        vth = (dt == 0)? 0 : (speed_act_upper_right-speed_act_upper_left)/(my_robot.wheelBase/1000);
         odom_msg.child_frame_id = base_link;
         odom_msg.twist.twist.linear.x = vx;
         odom_msg.twist.twist.linear.y = 0.0;
