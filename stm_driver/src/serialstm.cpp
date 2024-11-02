@@ -1,5 +1,6 @@
 #include "serialstm.h"
-double LOOPTIME =100;
+const int WINDOW_SZ = 5;
+const double LOOPTIME = 100;
 
 SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
 {   
@@ -34,6 +35,7 @@ uint8_t SerialSTM::getcrc(uint8_t* Bytecode, int len)
     }
     return sum;
 }
+
 
 int SerialSTM::notopen(std::string &result)
 {
@@ -87,6 +89,7 @@ void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
     int hr_speed = recvmsg -> Hrightspeed;
     int ll_speed = recvmsg -> Lleftspeed;
     int lr_speed = recvmsg -> Lrightspeed;
+
     speed_msgs.TopLeftWheel = hl_speed;
     speed_msgs.TopRightWheel = hr_speed;
     speed_msgs.BottomLeftWheel = ll_speed;

@@ -10,6 +10,7 @@
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int8MultiArray.h>
 #include "config_robot.h"
+#include <deque>
 
 using namespace std;
 
@@ -81,8 +82,6 @@ class SerialSTM {
         void bumpPublish(recvMessage* recvmsg);
         int notopen(std::string &result);
         uint8_t getcrc(uint8_t* Bytecode, int len);
-        robot myrobot;
-
 };
 
 

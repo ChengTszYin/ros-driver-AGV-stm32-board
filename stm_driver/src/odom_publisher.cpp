@@ -22,9 +22,9 @@ ros::Time speed_time(0.0);
 
 void handle_speed(const stm_driver::Wheel speed)
 {
-    speed_act_upper_left = (speed.TopLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_act_upper_left = -(speed.TopLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
     speed_act_upper_right = (speed.TopRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_lower_left = (speed.BottomLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_act_lower_left = -(speed.BottomLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
     speed_act_lower_right = (speed.BottomRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
     speed_dt = speed.time;
     speed_time = speed.header.stamp;
@@ -72,24 +72,25 @@ int main(int argc, char** argv)
 
         dt = speed_dt;
         dxy = (speed_act_upper_left + speed_act_upper_right)*dt/2;
-        dth = ((speed_act_upper_right - speed_act_upper_left) * dt)/(my_robot.wheelBase/1000);
+        dth = ((speed_act_left - speed_act_right) * dt) / (my_robot.wheelBase / 1000);
         if (dth > 0) dth *= angular_scale_positive;
         if (dth < 0) dth *= angular_scale_negative;
         if (dxy > 0) dxy *= linear_scale_positive;
         if (dxy < 0) dxy *= linear_scale_negative;
 
-        dx = cos(dth) * dxy;
-        dy = sin(dth) * dxy;
-        
+        dx = dxy * cos(dth) * (my_robot.wheelRadius/1000);
+        dy = dxy * sin(dth) * (my_robot.wheelRadius/1000);
+
         x_pos += (cos(theta) * dx - sin(theta) * dy);
         y_pos += (sin(theta) * dx + cos(theta) * dy);
         theta += dth;
-        
+
         if(theta >= two_pi) theta -= two_pi;
         if(theta <= -two_pi) theta += two_pi;
+
         ROS_INFO("x_pos: %f", x_pos);
         ROS_INFO("y_pos: %f", y_pos);
-        
+        ROS_INFO("speed_dt: %f", speed_dt);
         geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
         geometry_msgs::Quaternion empty_quat = tf::createQuaternionMsgFromYaw(0);
 

@@ -9,9 +9,8 @@
 #include <geometry_msgs/Twist.h>
 using namespace std;
 
-double LOOPTIME = 100;
+double LOOPTIME = 500;
 robot myrobot;
-
 double speed_req = 0;
 double angular_speed_req = 0;
 double speed_req_left = 0;
