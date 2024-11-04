@@ -1,10 +1,14 @@
 #include <iostream>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <stm_driver/Wheel.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include  "config_robot.h"
 #include <cmath>
 using namespace std;
+int PUBLISH_RATE = 80;
 
 robot my_robot;
 double speed_act_upper_left = 0.0;
@@ -18,20 +22,22 @@ double two_pi = 6.28319;
 double x_pos = 0.0;
 double y_pos = 0.0;
 double theta = 0.0;
-ros::Time speed_time(0.0);
 
-void handle_speed(const stm_driver::Wheel speed)
+double heading_ = 0.0;
+double linear_velocity_x_ = 0.0;
+double linear_velocity_y_ = 0.0;
+double angular_velocity_z_ = 0.0;
+double vel_dt_ = 0.0;
+tf2::Quaternion odom_quat;
+
+void handle_speed(const geometry_msgs::Vector3Stamped vel)
 {
-    speed_act_upper_left = -(speed.TopLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_upper_right = (speed.TopRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_lower_left = -(speed.BottomLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_lower_right = (speed.BottomRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_dt = speed.time;
-    speed_time = speed.header.stamp;
-    speed_act_left = (speed_act_upper_left + speed_act_lower_left) / 2;
-    speed_act_right = (speed_act_upper_right + speed_act_lower_right) / 2;
-    // ROS_INFO("speed_time: %f", speed_time);
-    // ROS_INFO("speed_dt : %f", speed_dt);
+    ros::Time current_time = ros::Time::now();
+    linear_velocity_x_ = vel.vector.x;
+    linear_velocity_y_ = vel.vector.y;
+    angular_velocity_z_ = vel.vector.z;
+    vel_dt_ = 0.1;
+    // ROS_INFO("vel_dt_: %f", vel_dt_);
 }
 
 int main(int argc, char** argv)
@@ -40,9 +46,10 @@ int main(int argc, char** argv)
     ros::NodeHandle n;
     ros::NodeHandle nh_private_("~");
     ros::Subscriber sub = n.subscribe("speed", 50, handle_speed);
+    geometry_msgs::TransformStamped t;
     ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50); 
     tf::TransformBroadcaster broadcaster;
-    double rate = 50;
+    double rate = PUBLISH_RATE;
     bool publish_tf = true;
     double dt = 0.0;
     double dx = 0.0;
@@ -69,42 +76,35 @@ int main(int argc, char** argv)
     while(ros::ok())
     {
         ros::spinOnce();
+        ros::Time current_time = ros::Time::now();
+        double delta_heading = angular_velocity_z_ * vel_dt_; //radians
+        double delta_x = (linear_velocity_x_ * cos(heading_) - linear_velocity_y_ * sin(heading_)) * vel_dt_; //m
+        double delta_y = (linear_velocity_x_ * sin(heading_) + linear_velocity_y_ * cos(heading_)) * vel_dt_; //m
 
-        dt = speed_dt;
-        dxy = (speed_act_upper_left + speed_act_upper_right)*dt/2;
-        dth = ((speed_act_left - speed_act_right) * dt) / (my_robot.wheelBase / 1000);
-        if (dth > 0) dth *= angular_scale_positive;
-        if (dth < 0) dth *= angular_scale_negative;
-        if (dxy > 0) dxy *= linear_scale_positive;
-        if (dxy < 0) dxy *= linear_scale_negative;
+        x_pos += delta_x;
+        y_pos += delta_y;
+        heading_ += delta_heading;
 
-        dx = dxy * cos(dth) * (my_robot.wheelRadius/1000);
-        dy = dxy * sin(dth) * (my_robot.wheelRadius/1000);
-
-        x_pos += (cos(theta) * dx - sin(theta) * dy);
-        y_pos += (sin(theta) * dx + cos(theta) * dy);
-        theta += dth;
-
-        if(theta >= two_pi) theta -= two_pi;
-        if(theta <= -two_pi) theta += two_pi;
+        odom_quat.setRPY(0,0,heading_);
 
         ROS_INFO("x_pos: %f", x_pos);
         ROS_INFO("y_pos: %f", y_pos);
         ROS_INFO("speed_dt: %f", speed_dt);
-        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
-        geometry_msgs::Quaternion empty_quat = tf::createQuaternionMsgFromYaw(0);
+        // geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
+        // geometry_msgs::Quaternion empty_quat = tf::createQuaternionMsgFromYaw(0);
 
         if(publish_tf)
         {
-            geometry_msgs::TransformStamped t;
-
             t.header.frame_id = odom;
             t.child_frame_id = base_link;
             t.transform.translation.x = x_pos;
             t.transform.translation.y = y_pos;
             t.transform.translation.z = 0.0;
-            t.transform.rotation = odom_quat;
-            t.header.stamp = ros::Time::now();
+            t.transform.rotation.x = odom_quat.x();
+            t.transform.rotation.y = odom_quat.y();
+            t.transform.rotation.z = odom_quat.z();
+            t.transform.rotation.w = odom_quat.w();
+            t.header.stamp = current_time;
 
             broadcaster.sendTransform(t);
         }
@@ -115,47 +115,25 @@ int main(int argc, char** argv)
         odom_msg.pose.pose.position.x = x_pos;
         odom_msg.pose.pose.position.y = y_pos;
         odom_msg.pose.pose.position.z = 0.0;
-        odom_msg.pose.pose.orientation = odom_quat;
-        if (speed_act_lower_left == 0 && speed_act_lower_right == 0)
-        {
-            odom_msg.pose.covariance[0] = 1e-9;
-            odom_msg.pose.covariance[7] = 1e-3;
-            odom_msg.pose.covariance[8] = 1e-9;
-            odom_msg.pose.covariance[14] = 1e6;
-            odom_msg.pose.covariance[21] = 1e6;
-            odom_msg.pose.covariance[28] = 1e6;
-            odom_msg.pose.covariance[35] = 1e-9;
-            odom_msg.twist.covariance[0] = 1e-9;
-            odom_msg.twist.covariance[7] = 1e-3;
-            odom_msg.twist.covariance[8] = 1e-9;
-            odom_msg.twist.covariance[14] = 1e6;
-            odom_msg.twist.covariance[21] = 1e6;
-            odom_msg.twist.covariance[28] = 1e6;
-            odom_msg.twist.covariance[35] = 1e-9;
-        }
-        else
-        {
-            odom_msg.pose.covariance[0] = 1e-3;
-            odom_msg.pose.covariance[7] = 1e-3;
-            odom_msg.pose.covariance[8] = 0.0;
-            odom_msg.pose.covariance[14] = 1e6;
-            odom_msg.pose.covariance[21] = 1e6;
-            odom_msg.pose.covariance[28] = 1e6;
-            odom_msg.pose.covariance[35] = 1e3;
-            odom_msg.twist.covariance[0] = 1e-3;
-            odom_msg.twist.covariance[7] = 1e-3;
-            odom_msg.twist.covariance[8] = 0.0;
-            odom_msg.twist.covariance[14] = 1e6;
-            odom_msg.twist.covariance[21] = 1e6;
-            odom_msg.twist.covariance[28] = 1e6;
-            odom_msg.twist.covariance[35] = 1e3;
-        }
-        vx = (dt == 0)?  0 : (speed_act_upper_left+speed_act_upper_right)/2;
-        vth = (dt == 0)? 0 : (speed_act_upper_right-speed_act_upper_left)/(my_robot.wheelBase/1000);
-        odom_msg.child_frame_id = base_link;
-        odom_msg.twist.twist.linear.x = vx;
-        odom_msg.twist.twist.linear.y = 0.0;
-        odom_msg.twist.twist.angular.z = dth;
+        odom_msg.pose.pose.orientation.x = odom_quat.x();
+        odom_msg.pose.pose.orientation.y = odom_quat.y();
+        odom_msg.pose.pose.orientation.z = odom_quat.z();
+        odom_msg.pose.pose.orientation.w = odom_quat.w();
+        odom_msg.pose.covariance[0] = 0.001;
+        odom_msg.pose.covariance[7] = 0.001;
+        odom_msg.pose.covariance[35] = 0.001;
+        //linear speed from encoders
+        odom_msg.twist.twist.linear.x = linear_velocity_x_;
+        odom_msg.twist.twist.linear.y = linear_velocity_y_;
+        odom_msg.twist.twist.linear.z = 0.0;
+
+        odom_msg.twist.twist.angular.x = 0.0;
+        odom_msg.twist.twist.angular.y = 0.0;
+        //angular speed from encoders
+        odom_msg.twist.twist.angular.z = angular_velocity_z_;
+        odom_msg.twist.covariance[0] = 0.0001;
+        odom_msg.twist.covariance[7] = 0.0001;
+        odom_msg.twist.covariance[35] = 0.0001;
     
         odom_pub.publish(odom_msg);
         r.sleep();

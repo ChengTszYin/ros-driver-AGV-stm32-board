@@ -1,3 +1,4 @@
 baseType='differential'
 wheelRadius=100.7
-wheelBase=280.0
+wheelBase=240.0
+Track=280.0

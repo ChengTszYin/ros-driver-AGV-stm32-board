@@ -4,7 +4,6 @@
 
     <node name="odom_publisher" pkg="stm_driver" type="odom_publisher">
 		<param name="publish_tf" value="true" />
-        <param name="publish_rate" value="10.0" />
         <param name="linear_scale_positive" value="1.025" />
         <param name="linear_scale_negative" value="1.025" />
         <param name="angular_scale_positive" value="1.078" />

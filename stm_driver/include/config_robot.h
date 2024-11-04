@@ -10,8 +10,9 @@ class robot
 {        
     public:
         std::string baseType;
-        float wheelRadius;
+        float wheelDia;
         float wheelBase;
+        float Track;
         uint8_t checksum(uint8_t data[], int len);
         robot();
 };

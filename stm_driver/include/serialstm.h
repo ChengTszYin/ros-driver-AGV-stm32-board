@@ -54,14 +54,21 @@ struct recvMessage
     uint8_t d80nk4;
 };
 
+struct velocity
+{
+    double linear_x;
+    double linear_y;
+    double angular_z;
+};
+
 class SerialSTM {
     private:
         string port = "COM4";
         int baud = 115200;
         serial::Serial ser;
         ros::NodeHandle n_ser;
-        // geometry_msgs::Vector3Stamped speed_msgs;
         stm_driver::Wheel speed_msgs;
+        geometry_msgs::Vector3Stamped veloc_msgs;
         sensor_msgs::Range front_dist;
         sensor_msgs::Range back_dist;
         sensor_msgs::Imu imu_msgs;
@@ -71,6 +78,7 @@ class SerialSTM {
         ros::Publisher  back_pub;
         ros::Publisher  imu_pub;
         ros::Publisher  wsad_pub;
+        ros::Publisher  veloc_pub;
 
     public:
         SerialSTM(string port, int baud);
@@ -82,6 +90,9 @@ class SerialSTM {
         void bumpPublish(recvMessage* recvmsg);
         int notopen(std::string &result);
         uint8_t getcrc(uint8_t* Bytecode, int len);
+        velocity vel;
+        velocity getVelocity(double rpm1, double rpm2, double rpm3, double rpm4);
+        robot rbot;
 };
 
 
