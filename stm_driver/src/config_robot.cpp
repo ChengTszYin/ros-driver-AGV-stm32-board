@@ -33,13 +33,14 @@ robot::robot()
       }
       file_.close();
 
-      if(_val.size() == 3)
+      if(_val.size() == 4)
       {
          try
          {
             baseType = _val[0];
-            wheelRadius = std::stof(_val[1]);
+            wheelDia = std::stof(_val[1]);
             wheelBase = std::stof(_val[2]);
+            Track = std::stof(_val[3]);
             std::cout << baseType << " drive is initiated " << std::endl;
          }
 

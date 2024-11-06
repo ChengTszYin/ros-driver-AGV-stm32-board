@@ -10,23 +10,23 @@
 using namespace std;
 
 double LOOPTIME = 500;
-robot myrobot;
 double speed_req = 0;
 double angular_speed_req = 0;
 double speed_req_left = 0;
 double speed_req_right = 0;
 double l_rpm = 0;
 double r_rpm = 0;
+robot rbot;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
-    speed_req = cmd_vel.linear.x * 5;
-    angular_speed_req = cmd_vel.angular.z / 100;
-    speed_req_left = speed_req - (angular_speed_req * (myrobot.wheelBase / 2));
-    speed_req_right = speed_req + (angular_speed_req * (myrobot.wheelBase / 2));
-    l_rpm = (speed_req_left/myrobot.wheelRadius) * (60/(2 * M_PI));
-    r_rpm = (speed_req_right/myrobot.wheelRadius) * (60/(2 * M_PI));
-     ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
+    speed_req = cmd_vel.linear.x;
+    angular_speed_req = cmd_vel.angular.z;
+
+    speed_req_left = trunc(speed_req - (angular_speed_req * (rbot.Track / 2)));
+    speed_req_right = trunc(speed_req + (angular_speed_req * (rbot.Track / 2)));
+    l_rpm = (speed_req_left / (M_PI * rbot.wheelDia)) * 60;
+    r_rpm = (speed_req_right / (M_PI * rbot.wheelDia)) * 60;
 }
 
 void allTopicPublish(SerialSTM* pb, recvMessage* receive)
@@ -71,36 +71,38 @@ int main(int argc, char** argv)
         hostmsg.Lleftspeed = -speed_req_left;
         hostmsg.Hrightspeed = speed_req_right;
         hostmsg.Lrightspeed = speed_req_right;
+        ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
         serial.putSpeed(&hostmsg);
-        if (myrobot.checksum(bufferArray, 42)){
+        if (rbot.checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
-        // ROS_INFO("speed_req_left : %f", speed_req_left);
-        // ROS_INFO("speed_req_right: %f", speed_req_right);
+        ROS_INFO("speed_req_left : %f", speed_req_left);
+        ROS_INFO("speed_req_right: %f", speed_req_right);
+        ROS_INFO("rbot.Track: %f", rbot.Track);
        
         // Output the result
-        cout << "lID: " << " " << recv.HleftID << endl;
-        cout << "rID: " << " " << recv.HrightID << endl;
-        cout << "Hleftspeed: " << " " << recv.Hleftspeed << endl;
-        cout << "Hrightspeed: " << " " << recv.Hrightspeed << endl;
-        cout << "Lleftspeed: " << " " << recv.Lleftspeed << endl;
-        cout << "Lrightspeed: " << " " << recv.Lrightspeed << endl;
-        cout << "accel_x: " << " " << recv.acc_x << endl;
-        cout << "accel_y: " << " " << recv.acc_y << endl;
-        cout << "accel_z: " << " " << recv.acc_z << endl;
-        cout << "gyro_x: " << " " << recv.gyro_x << endl;
-        cout << "gyro_y: " << " " << recv.gyro_y << endl;
-        cout << "gyro_z: " << " " << recv.gyro_z << endl;
-        cout << "q1: " << " " << recv.Q0 << endl;
-        cout << "q2: " << " " << recv.Q1 << endl;
-        cout << "q3: " << " " << recv.Q2 << endl;
-        cout << "q4: " << " " << recv.Q3 << endl;
-        cout << "sensor1: " << " " << recv.sensor1 << endl;
-        cout << "sensor2: " << " " << recv.sensor2 << endl;
-        cout << "d80nk1: " << " " << recv.d80nk1 << endl;
-        cout << "d80nk2: " << " " << recv.d80nk2 << endl;
-        cout << "d80nk3: " << " " << recv.d80nk3 << endl;
-        cout << "d80nk4: " << " " << recv.d80nk4 << endl;
+        // cout << "lID: " << " " << recv.HleftID << endl;
+        // cout << "rID: " << " " << recv.HrightID << endl;
+        // cout << "Hleftspeed: " << " " << recv.Hleftspeed << endl;
+        // cout << "Hrightspeed: " << " " << recv.Hrightspeed << endl;
+        // cout << "Lleftspeed: " << " " << recv.Lleftspeed << endl;
+        // cout << "Lrightspeed: " << " " << recv.Lrightspeed << endl;
+        // cout << "accel_x: " << " " << recv.acc_x << endl;
+        // cout << "accel_y: " << " " << recv.acc_y << endl;
+        // cout << "accel_z: " << " " << recv.acc_z << endl;
+        // cout << "gyro_x: " << " " << recv.gyro_x << endl;
+        // cout << "gyro_y: " << " " << recv.gyro_y << endl;
+        // cout << "gyro_z: " << " " << recv.gyro_z << endl;
+        // cout << "q1: " << " " << recv.Q0 << endl;
+        // cout << "q2: " << " " << recv.Q1 << endl;
+        // cout << "q3: " << " " << recv.Q2 << endl;
+        // cout << "q4: " << " " << recv.Q3 << endl;
+        // cout << "sensor1: " << " " << recv.sensor1 << endl;
+        // cout << "sensor2: " << " " << recv.sensor2 << endl;
+        // cout << "d80nk1: " << " " << recv.d80nk1 << endl;
+        // cout << "d80nk2: " << " " << recv.d80nk2 << endl;
+        // cout << "d80nk3: " << " " << recv.d80nk3 << endl;
+        // cout << "d80nk4: " << " " << recv.d80nk4 << endl;
         ros::spinOnce();
         loop_rate.sleep();
     }

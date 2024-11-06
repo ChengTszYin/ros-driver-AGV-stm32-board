@@ -9,6 +9,8 @@
 #include <sensor_msgs/Range.h> 
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int8MultiArray.h>
+#include <nav_msgs/Odometry.h>
+#include <tf/transform_broadcaster.h>
 #include "config_robot.h"
 #include <deque>
 
@@ -60,6 +62,19 @@ class SerialSTM {
         int baud = 115200;
         serial::Serial ser;
         ros::NodeHandle n_ser;
+        double vel_dt_ = 0.0;
+        double d_lv = 0.0;
+        double d_rv = 0.0;
+        double dxy_ave = 0;
+        double dth = 0.0;
+        double vxy = 0.0;
+        double vth = 0.0;
+        double dx = 0.0;
+        double dy = 0.0;
+        double x_pos = 0.0;
+        double y_pos = 0.0;
+        double th = 0.0;
+        ros::Time last_vel_time_;
         // geometry_msgs::Vector3Stamped speed_msgs;
         stm_driver::Wheel speed_msgs;
         sensor_msgs::Range front_dist;
@@ -71,6 +86,9 @@ class SerialSTM {
         ros::Publisher  back_pub;
         ros::Publisher  imu_pub;
         ros::Publisher  wsad_pub;
+        ros::Publisher  odom_pub;
+        tf::TransformBroadcaster broadcaster;
+        robot myrobot;
 
     public:
         SerialSTM(string port, int baud);
@@ -82,6 +100,7 @@ class SerialSTM {
         void bumpPublish(recvMessage* recvmsg);
         int notopen(std::string &result);
         uint8_t getcrc(uint8_t* Bytecode, int len);
+        
 };
 
 

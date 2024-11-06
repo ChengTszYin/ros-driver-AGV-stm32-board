@@ -22,10 +22,10 @@ ros::Time speed_time(0.0);
 
 void handle_speed(const stm_driver::Wheel speed)
 {
-    speed_act_upper_left = -(speed.TopLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_upper_right = (speed.TopRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_lower_left = -(speed.BottomLeftWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
-    speed_act_lower_right = (speed.BottomRightWheel * 2 * M_PI * (my_robot.wheelRadius/1000))/60;
+    speed_act_upper_left = -(speed.TopLeftWheel  * M_PI * (my_robot.wheelDia/1000))/60;
+    speed_act_upper_right = (speed.TopRightWheel  * M_PI * (my_robot.wheelDia/1000))/60;
+    speed_act_lower_left = -(speed.BottomLeftWheel  * M_PI * (my_robot.wheelDia/1000))/60;
+    speed_act_lower_right = (speed.BottomRightWheel * M_PI * (my_robot.wheelDia/1000))/60;
     speed_dt = speed.time;
     speed_time = speed.header.stamp;
     speed_act_left = (speed_act_upper_left + speed_act_lower_left) / 2;
@@ -78,8 +78,8 @@ int main(int argc, char** argv)
         if (dxy > 0) dxy *= linear_scale_positive;
         if (dxy < 0) dxy *= linear_scale_negative;
 
-        dx = dxy * cos(dth) * (my_robot.wheelRadius/1000);
-        dy = dxy * sin(dth) * (my_robot.wheelRadius/1000);
+        dx = dxy * cos(dth) * (my_robot.wheelDia/1000);
+        dy = dxy * sin(dth) * (my_robot.wheelDia/1000);
 
         x_pos += (cos(theta) * dx - sin(theta) * dy);
         y_pos += (sin(theta) * dx + cos(theta) * dy);

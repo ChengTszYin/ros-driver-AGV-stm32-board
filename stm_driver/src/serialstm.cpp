@@ -24,6 +24,7 @@ SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
     back_pub = n_ser.advertise<sensor_msgs::Range> ("back_dist", 1000);
     imu_pub = n_ser.advertise<sensor_msgs::Imu> ("imu", 1000);
     wsad_pub = n_ser.advertise<std_msgs::Int8MultiArray> ("WSAD", sizeof(wsad));
+    odom_pub = n_ser.advertise<nav_msgs::Odometry>("odom", 1000); 
 }
 
 uint8_t SerialSTM::getcrc(uint8_t* Bytecode, int len)
@@ -84,12 +85,95 @@ void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
 
 void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
 {
-    speed_msgs.header.stamp = ros::Time::now();
+    
+    ros::Time current_time = ros::Time::now();
     int hl_speed = recvmsg -> Hleftspeed;
     int hr_speed = recvmsg -> Hrightspeed;
     int ll_speed = recvmsg -> Lleftspeed;
     int lr_speed = recvmsg -> Lrightspeed;
+    vel_dt_ = (current_time - last_vel_time_).toSec();
+    last_vel_time_ = current_time;
 
+    double left_rpm = (hl_speed + hr_speed) / 2;
+    double right_rpm = (ll_speed + lr_speed) / 2;
+    d_lv = (left_rpm * M_PI * myrobot.wheelDia) / 60;
+    d_rv = (right_rpm * M_PI * myrobot.wheelDia ) / 60;
+
+    dxy_ave = (d_lv + d_rv) / 2.0;
+    dth = (d_lv + d_rv) / myrobot.Track;
+    vxy = dxy_ave/vel_dt_;
+    vth = dth/vel_dt_;
+
+    if(vxy != 0.0)
+    {
+        dx = cos(dth) * dxy_ave;
+        dy = -sin(dth) * dxy_ave;
+        x_pos += (cos(th) * dx - sin(th) * dy);
+        y_pos += (sin(th) * dx + cos(th) * dy);
+    }
+
+    if(dth != 0.0)
+    {
+        th += dth;
+    }
+
+    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+    geometry_msgs::TransformStamped t;
+    t.header.frame_id = "odom";
+    t.child_frame_id = "base_link";
+    t.transform.translation.x = x_pos;
+    t.transform.translation.y = y_pos;
+    t.transform.translation.z = 0.0;
+    t.transform.rotation = odom_quat;
+    t.header.stamp = current_time;
+    broadcaster.sendTransform(t);
+
+    nav_msgs::Odometry odom_msg;
+    odom_msg.header.stamp = current_time;
+    odom_msg.header.frame_id = "odom";
+    odom_msg.pose.pose.position.x = x_pos;
+    odom_msg.pose.pose.position.y = y_pos;
+    odom_msg.pose.pose.position.z = 0.0;
+    odom_msg.pose.pose.orientation = odom_quat;
+    if (left_rpm == 0 && right_rpm == 0){
+      odom_msg.pose.covariance[0] = 1e-9;
+      odom_msg.pose.covariance[7] = 1e-3;
+      odom_msg.pose.covariance[8] = 1e-9;
+      odom_msg.pose.covariance[14] = 1e6;
+      odom_msg.pose.covariance[21] = 1e6;
+      odom_msg.pose.covariance[28] = 1e6;
+      odom_msg.pose.covariance[35] = 1e-9;
+      odom_msg.twist.covariance[0] = 1e-9;
+      odom_msg.twist.covariance[7] = 1e-3;
+      odom_msg.twist.covariance[8] = 1e-9;
+      odom_msg.twist.covariance[14] = 1e6;
+      odom_msg.twist.covariance[21] = 1e6;
+      odom_msg.twist.covariance[28] = 1e6;
+      odom_msg.twist.covariance[35] = 1e-9;
+    }
+    else{
+      odom_msg.pose.covariance[0] = 1e-3;
+      odom_msg.pose.covariance[7] = 1e-3;
+      odom_msg.pose.covariance[8] = 0.0;
+      odom_msg.pose.covariance[14] = 1e6;
+      odom_msg.pose.covariance[21] = 1e6;
+      odom_msg.pose.covariance[28] = 1e6;
+      odom_msg.pose.covariance[35] = 1e3;
+      odom_msg.twist.covariance[0] = 1e-3;
+      odom_msg.twist.covariance[7] = 1e-3;
+      odom_msg.twist.covariance[8] = 0.0;
+      odom_msg.twist.covariance[14] = 1e6;
+      odom_msg.twist.covariance[21] = 1e6;
+      odom_msg.twist.covariance[28] = 1e6;
+      odom_msg.twist.covariance[35] = 1e3;
+    }
+    odom_msg.twist.twist.linear.x = vxy;
+    odom_msg.twist.twist.linear.y = 0;
+    odom_msg.twist.twist.angular.z = vth;
+    odom_pub.publish(odom_msg);
+
+    speed_msgs.header.stamp = ros::Time::now();
     speed_msgs.TopLeftWheel = hl_speed;
     speed_msgs.TopRightWheel = hr_speed;
     speed_msgs.BottomLeftWheel = ll_speed;
