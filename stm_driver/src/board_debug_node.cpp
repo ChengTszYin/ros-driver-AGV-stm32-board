@@ -9,7 +9,7 @@
 #include <geometry_msgs/Twist.h>
 using namespace std;
 
-double LOOPTIME = 500;
+double LOOPTIME = 100;
 double speed_req = 0;
 double angular_speed_req = 0;
 double speed_req_left = 0;
@@ -20,13 +20,13 @@ robot rbot;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
-    speed_req = cmd_vel.linear.x;
+    speed_req = cmd_vel.linear.x / 5;
     angular_speed_req = cmd_vel.angular.z;
 
-    speed_req_left = trunc(speed_req - (angular_speed_req * (rbot.Track / 2)));
-    speed_req_right = trunc(speed_req + (angular_speed_req * (rbot.Track / 2)));
-    l_rpm = (speed_req_left / (M_PI * rbot.wheelDia)) * 60;
-    r_rpm = (speed_req_right / (M_PI * rbot.wheelDia)) * 60;
+    speed_req_left = speed_req - (angular_speed_req * (rbot.Track / 2));
+    speed_req_right = speed_req + (angular_speed_req * (rbot.Track / 2));
+    l_rpm = trunc((speed_req_left / (M_PI * rbot.wheelDia)) * 60);
+    r_rpm = trunc((speed_req_right / (M_PI * rbot.wheelDia)) * 60);
 }
 
 void allTopicPublish(SerialSTM* pb, recvMessage* receive)
@@ -67,15 +67,15 @@ int main(int argc, char** argv)
             last_publish_time = ros::Time::now();
         }
         
-        hostmsg.Hleftspeed = -speed_req_left;
-        hostmsg.Lleftspeed = -speed_req_left;
-        hostmsg.Hrightspeed = speed_req_right;
-        hostmsg.Lrightspeed = speed_req_right;
-        ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
+        hostmsg.Hleftspeed = - l_rpm;
+        hostmsg.Lleftspeed = -l_rpm;
+        hostmsg.Hrightspeed = r_rpm;
+        hostmsg.Lrightspeed = r_rpm;
         serial.putSpeed(&hostmsg);
         if (rbot.checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
+        ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
         ROS_INFO("speed_req_left : %f", speed_req_left);
         ROS_INFO("speed_req_right: %f", speed_req_right);
         ROS_INFO("rbot.Track: %f", rbot.Track);
