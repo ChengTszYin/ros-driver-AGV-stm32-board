@@ -109,7 +109,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES serialstm config_robot
+ LIBRARIES serialstm
  CATKIN_DEPENDS message_generation geometry_msgs roscpp sensor_msgs serial std_msgs nav_msgs tf
  DEPENDS system_lib
 )
@@ -134,9 +134,6 @@ add_library(serialstm
   src/serialstm.cpp
 )
 
-add_library(config_robot
-  src/config_robot.cpp
-)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -164,13 +161,11 @@ add_executable(odom_publisher src/odom_publisher.cpp)
 target_link_libraries(board_debug_node
   # my_board_debug
   serialstm
-  config_robot
   ${catkin_LIBRARIES}
 )
 
 target_link_libraries(odom_publisher
   serialstm
-  config_robot
   ${catkin_LIBRARIES}
 )
 

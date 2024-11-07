@@ -11,7 +11,6 @@
 #include <std_msgs/Int8MultiArray.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
-#include "config_robot.h"
 #include <deque>
 
 using namespace std;
@@ -88,7 +87,6 @@ class SerialSTM {
         ros::Publisher  wsad_pub;
         ros::Publisher  odom_pub;
         tf::TransformBroadcaster broadcaster;
-        robot myrobot;
 
     public:
         SerialSTM(string port, int baud);
@@ -100,7 +98,6 @@ class SerialSTM {
         void bumpPublish(recvMessage* recvmsg);
         int notopen(std::string &result);
         uint8_t getcrc(uint8_t* Bytecode, int len);
-        
 };
 
 

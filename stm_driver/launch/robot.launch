@@ -1,5 +1,6 @@
 <launch>
     <node name="board_debug_node" pkg="stm_driver" type="board_debug_node" output="screen">
+        <rosparam file="$(find stm_driver)/param/config.yaml" command="load" />
     </node>
 
     <node name="odom_publisher" pkg="stm_driver" type="odom_publisher">

@@ -2,11 +2,13 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <stm_driver/Wheel.h>
-#include  "config_robot.h"
 #include <cmath>
 using namespace std;
 
-robot my_robot;
+double wheelDia = 0.01007;
+double wheelBase = 0.240;
+double Track = 0.280;
+
 double speed_act_upper_left = 0.0;
 double speed_act_upper_right = 0.0;
 double speed_act_lower_left = 0.0;
@@ -18,7 +20,7 @@ double two_pi = 6.28319;
 double x_pos = 0.0;
 double y_pos = 0.0;
 double theta = 0.0;
-double wheel_cir = (my_robot.wheelDia * M_PI) / 60;
+double wheel_cir = (wheelDia * M_PI) / 60;
 ros::Time current_time;
 ros::Time speed_time(0.0);
 
@@ -40,6 +42,9 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "odom");
     ros::NodeHandle n;
     ros::NodeHandle nh_private_("~");
+    n.param<double>("wheelDia", wheelDia, 0.01007);
+    n.param<double>("wheelBase", wheelBase, 0.240);
+    n.param<double>("Track", Track, 0.280);
     ros::Subscriber sub = n.subscribe("speed", 50, handle_speed);
     ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50); 
     tf::TransformBroadcaster broadcaster;
@@ -76,7 +81,7 @@ int main(int argc, char** argv)
         ROS_INFO("dt : %f", dt);
         dxy = (speed_act_left+speed_act_right)*dt/2;
         ROS_INFO("dxy : %f", dxy);
-        dth = ((speed_act_right-speed_act_left)*dt)/my_robot.Track;
+        dth = ((speed_act_right-speed_act_left)*dt)/Track;
         ROS_INFO("dth : %f", dth);
         if (dth > 0) dth *= angular_scale_positive;
         if (dth < 0) dth *= angular_scale_negative;
@@ -146,7 +151,7 @@ int main(int argc, char** argv)
         odom_msg.twist.covariance[35] = 1e3;
         }
         vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2;
-        vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/my_robot.Track;
+        vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/Track;
         odom_msg.child_frame_id = base_link;
         odom_msg.twist.twist.linear.x = vx;
         odom_msg.twist.twist.linear.y = 0.0;

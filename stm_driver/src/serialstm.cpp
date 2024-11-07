@@ -49,7 +49,6 @@ int SerialSTM::notopen(std::string &result)
     return 0;
 }
 
-
 void SerialSTM::readSpeed(recvMessage* recvmsg, uint8_t* bufferArray)
 {   
     if(!ser.isOpen())

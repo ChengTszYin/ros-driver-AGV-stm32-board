@@ -1,4 +1,0 @@
-baseType='differential'
-wheelRadius=0.1007
-wheelBase=0.240
-Track=0.280

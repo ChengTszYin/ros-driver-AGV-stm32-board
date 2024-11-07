@@ -4,7 +4,6 @@
 #include <vector>
 #include <cmath>
 #include <ros/ros.h>
-#include "config_robot.h"
 #include "serialstm.h"
 #include <geometry_msgs/Twist.h>
 using namespace std;
@@ -16,17 +15,20 @@ double speed_req_left = 0;
 double speed_req_right = 0;
 double l_rpm = 0;
 double r_rpm = 0;
-robot rbot;
+
+double fakewheelDia = 0.0;
+double fakewheelBase = 0.0;
+double fakeTrack = 0.0;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
     speed_req = cmd_vel.linear.x / 10;
     angular_speed_req = cmd_vel.angular.z / 2;
 
-    speed_req_left = speed_req - (angular_speed_req * (rbot.Track / 2));
-    speed_req_right = speed_req + (angular_speed_req * (rbot.Track / 2));
-    l_rpm = trunc((speed_req_left / (M_PI * rbot.wheelDia)) * 60);
-    r_rpm = trunc((speed_req_right / (M_PI * rbot.wheelDia)) * 60);
+    speed_req_left = speed_req + (angular_speed_req * (fakeTrack / 2));
+    speed_req_right = speed_req - (angular_speed_req * (fakeTrack / 2));
+    l_rpm = trunc((speed_req_left / (M_PI * fakewheelDia)) * 60);
+    r_rpm = trunc((speed_req_right / (M_PI * fakewheelDia)) * 60);
 }
 
 void allTopicPublish(SerialSTM* pb, recvMessage* receive)
@@ -37,6 +39,16 @@ void allTopicPublish(SerialSTM* pb, recvMessage* receive)
     pb->bumpPublish(receive);
 }
 
+uint8_t checksum(uint8_t data[], int len)
+{
+	int16_t crc = 0;
+	for(int i = 0; i < len; i++)
+	{
+		crc = (crc + data[i]) & 0xFF;
+	}
+	return crc;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -45,7 +57,9 @@ int main(int argc, char** argv)
     SerialSTM serial("/dev/ttyUSB0", 115200);
     recvMessage recv;
     Hostmessage hostmsg;
-
+    n.param<double>("fakewheelDia", fakewheelDia, 0.1007);
+    n.param<double>("fakewheelBase", fakewheelBase, 0.240);
+    n.param<double>("fakeTrack", fakeTrack, 0.280);
     ros::Subscriber sub = n.subscribe("cmd_vel", 1000, cmd_handle);
   	std::string data, result;
     ros::Rate loop_rate(60);
@@ -72,7 +86,7 @@ int main(int argc, char** argv)
         hostmsg.Hrightspeed = r_rpm;
         hostmsg.Lrightspeed = r_rpm;
         serial.putSpeed(&hostmsg);
-        if (rbot.checksum(bufferArray, 42)){
+        if (checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
         // ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
