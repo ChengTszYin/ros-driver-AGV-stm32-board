@@ -1,6 +1,6 @@
 #include "serialstm.h"
 const int WINDOW_SZ = 5;
-const double LOOPTIME = 500;
+const double LOOPTIME = 100;
 
 SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
 {   
@@ -92,11 +92,16 @@ void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
     int ll_speed = recvmsg -> Lleftspeed;
     int lr_speed = recvmsg -> Lrightspeed;
 
+    cout << "hl_speed: " << " " << hl_speed << endl;
+    cout << "hr_speed: " << " " << hr_speed << endl;
+    cout << "ll_speed: " << " " << ll_speed << endl;
+    cout << "lr_speed: " << " " << lr_speed << endl;
+
     speed_msgs.header.stamp = ros::Time::now();
-    speed_msgs.TopLeftWheel = hl_speed;
-    speed_msgs.TopRightWheel = hr_speed;
-    speed_msgs.BottomLeftWheel = ll_speed;
-    speed_msgs.BottomRightWheel = lr_speed;
+    speed_msgs.TopLeftWheel = lr_speed;
+    speed_msgs.TopRightWheel = ll_speed;
+    speed_msgs.BottomLeftWheel = lr_speed;
+    speed_msgs.BottomRightWheel = ll_speed;
     speed_msgs.time = time / 1000;
     ser_pub.publish(speed_msgs);
 }

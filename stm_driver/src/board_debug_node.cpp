@@ -20,8 +20,8 @@ robot rbot;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
-    speed_req = cmd_vel.linear.x / 5;
-    angular_speed_req = cmd_vel.angular.z;
+    speed_req = cmd_vel.linear.x / 10;
+    angular_speed_req = cmd_vel.angular.z / 2;
 
     speed_req_left = speed_req - (angular_speed_req * (rbot.Track / 2));
     speed_req_right = speed_req + (angular_speed_req * (rbot.Track / 2));
@@ -75,10 +75,10 @@ int main(int argc, char** argv)
         if (rbot.checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
-        ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
-        ROS_INFO("speed_req_left : %f", speed_req_left);
-        ROS_INFO("speed_req_right: %f", speed_req_right);
-        ROS_INFO("rbot.Track: %f", rbot.Track);
+        // ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
+        // ROS_INFO("speed_req_left : %f", speed_req_left);
+        // ROS_INFO("speed_req_right: %f", speed_req_right);
+        // ROS_INFO("rbot.Track: %f", rbot.Track);
        
         // Output the result
         // cout << "lID: " << " " << recv.HleftID << endl;

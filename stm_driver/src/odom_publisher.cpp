@@ -31,8 +31,9 @@ void handle_speed(const stm_driver::Wheel speed)
     speed_dt = speed.time;
     speed_time = speed.header.stamp;
     speed_act_left = (speed_act_upper_left + speed_act_lower_left) * wheel_cir/ 2;
-    speed_act_right = (speed_act_upper_right + speed_act_lower_right) * wheel_cir/ 2;
+    speed_act_right = -1*(speed_act_upper_right + speed_act_lower_right) * wheel_cir/ 2;
 }
+
 
 int main(int argc, char** argv)
 {
