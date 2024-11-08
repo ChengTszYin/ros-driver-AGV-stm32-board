@@ -58,8 +58,8 @@ int main(int argc, char** argv)
     double vx = 0.0;
     double vy = 0.0;
     double vth = 0.0;
-    double linear_scale_positive = 1.0;
-    double linear_scale_negative = 1.0;
+    double linear_scale_positive = 1000.0;
+    double linear_scale_negative = 0.001;
     double angular_scale_positive = 1.0;
     double angular_scale_negative = 1.0;
     char base_link[] = "/base_link";
