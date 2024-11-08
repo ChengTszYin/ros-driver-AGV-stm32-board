@@ -99,8 +99,8 @@ void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
     speed_msgs.header.stamp = ros::Time::now();
     speed_msgs.TopLeftWheel = lr_speed;
     speed_msgs.TopRightWheel = ll_speed;
-    speed_msgs.BottomLeftWheel = lr_speed;
-    speed_msgs.BottomRightWheel = ll_speed;
+    speed_msgs.BottomLeftWheel = hr_speed;
+    speed_msgs.BottomRightWheel = hl_speed;
     speed_msgs.time = time / 1000;
     ser_pub.publish(speed_msgs);
 }

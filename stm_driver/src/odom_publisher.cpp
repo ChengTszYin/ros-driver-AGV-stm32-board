@@ -5,9 +5,9 @@
 #include <cmath>
 using namespace std;
 
-double wheelDia = 0.01007;
-double wheelBase = 0.240;
-double Track = 0.280;
+double wheelDia = 0.01007/2;
+double wheelBase = 240.0;
+double Track = 280.0;
 
 double speed_act_upper_left = 0.0;
 double speed_act_upper_right = 0.0;

@@ -16,9 +16,9 @@ double speed_req_right = 0;
 double l_rpm = 0;
 double r_rpm = 0;
 
-double fakewheelDia = 0.0;
-double fakewheelBase = 0.0;
-double fakeTrack = 0.0;
+double fakewheelDia = 0.1007;
+double fakewheelBase = 0.240;
+double fakeTrack = 0.280;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
