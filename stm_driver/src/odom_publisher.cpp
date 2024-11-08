@@ -5,12 +5,14 @@
 #include <stm_driver/Wheel.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <geometry_msgs/TransformStamped.h>
-#include  "config_robot.h"
 #include <cmath>
 using namespace std;
 int PUBLISH_RATE = 80;
 
-robot my_robot;
+double wheelDia = 0.01007;
+double wheelBase = 240.0;
+double Track = 280.0;
+
 double speed_act_upper_left = 0.0;
 double speed_act_upper_right = 0.0;
 double speed_act_lower_left = 0.0;
@@ -19,11 +21,15 @@ double speed_act_left = 0.0;
 double speed_act_right = 0.0;
 double speed_dt = 0.0;
 double two_pi = 6.28319;
+double dx_pos = 0.0;
+double dy_pos_ = 0.0;
 double x_pos = 0.0;
 double y_pos = 0.0;
 double theta = 0.0;
 
-double heading_ = 0.0;
+double wheel_cir = (wheelDia * M_PI) / 60;
+double dheading_ = 0.0;
+double heading_ = 0.0; 
 double linear_velocity_x_ = 0.0;
 double linear_velocity_y_ = 0.0;
 double angular_velocity_z_ = 0.0;
@@ -33,11 +39,19 @@ tf2::Quaternion odom_quat;
 void handle_speed(const geometry_msgs::Vector3Stamped vel)
 {
     ros::Time current_time = ros::Time::now();
-    linear_velocity_x_ = vel.vector.x;
+    linear_velocity_x_ = vel.vector.x * (wheelDia* M_PI);
     linear_velocity_y_ = vel.vector.y;
-    angular_velocity_z_ = vel.vector.z;
+    angular_velocity_z_ = (vel.vector.z * (wheelDia * M_PI)) / ((Track / 2) + (Track/ 2));
     vel_dt_ = 0.1;
     // ROS_INFO("vel_dt_: %f", vel_dt_);
+    double delta_heading = angular_velocity_z_ * vel_dt_; //radians
+    double delta_x = (linear_velocity_x_ * cos(dheading_) - linear_velocity_y_ * sin(dheading_)) * vel_dt_; //m
+    double delta_y = (linear_velocity_x_ * sin(dheading_) + linear_velocity_y_ * cos(dheading_)) * vel_dt_; //m
+
+    //calculate current position of the robot
+    dx_pos = delta_x;
+    dy_pos_ = delta_y;
+    dheading_ += delta_heading;
 }
 
 int main(int argc, char** argv)
@@ -77,13 +91,12 @@ int main(int argc, char** argv)
     {
         ros::spinOnce();
         ros::Time current_time = ros::Time::now();
-        double delta_heading = angular_velocity_z_ * vel_dt_; //radians
-        double delta_x = (linear_velocity_x_ * cos(heading_) - linear_velocity_y_ * sin(heading_)) * vel_dt_; //m
-        double delta_y = (linear_velocity_x_ * sin(heading_) + linear_velocity_y_ * cos(heading_)) * vel_dt_; //m
+        
 
-        x_pos += delta_x;
-        y_pos += delta_y;
-        heading_ += delta_heading;
+        x_pos += dx_pos;
+        y_pos += dy_pos_;
+        heading_ += dheading_;
+        // heading_ += delta_heading;
 
         odom_quat.setRPY(0,0,heading_);
 
@@ -93,21 +106,18 @@ int main(int argc, char** argv)
         // geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
         // geometry_msgs::Quaternion empty_quat = tf::createQuaternionMsgFromYaw(0);
 
-        if(publish_tf)
-        {
-            t.header.frame_id = odom;
-            t.child_frame_id = base_link;
-            t.transform.translation.x = x_pos;
-            t.transform.translation.y = y_pos;
-            t.transform.translation.z = 0.0;
-            t.transform.rotation.x = odom_quat.x();
-            t.transform.rotation.y = odom_quat.y();
-            t.transform.rotation.z = odom_quat.z();
-            t.transform.rotation.w = odom_quat.w();
-            t.header.stamp = current_time;
+        t.header.frame_id = odom;
+        t.child_frame_id = base_link;
+        t.transform.translation.x = x_pos;
+        t.transform.translation.y = y_pos;
+        t.transform.translation.z = 0.0;
+        t.transform.rotation.x = odom_quat.x();
+        t.transform.rotation.y = odom_quat.y();
+        t.transform.rotation.z = odom_quat.z();
+        t.transform.rotation.w = odom_quat.w();
+        t.header.stamp = current_time;
 
-            broadcaster.sendTransform(t);
-        }
+        broadcaster.sendTransform(t);
 
         nav_msgs::Odometry odom_msg;
         odom_msg.header.stamp = ros::Time::now();;

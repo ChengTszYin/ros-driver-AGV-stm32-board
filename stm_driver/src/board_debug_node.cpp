@@ -4,15 +4,12 @@
 #include <vector>
 #include <cmath>
 #include <ros/ros.h>
-#include "config_robot.h"
 #include "serialstm.h"
-#include <geometry_msgs/Vector3Stamped.h>
 #include <geometry_msgs/Twist.h>
 using namespace std;
 
-int LOOPTIME = 50;
+int LOOPTIME = 100;
 int PUBLISH_RATE = 50;
-robot myrobot;
 double speed_req = 0;
 double angular_speed_req = 0;
 double speed_req_left = 0;
@@ -20,14 +17,18 @@ double speed_req_right = 0;
 double l_rpm = 0;
 double r_rpm = 0;
 
+double fakewheelDia = 0.1007;
+double fakewheelBase = 0.240;
+double fakeTrack = 0.280;
+
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
-    speed_req = cmd_vel.linear.x * 5;
-    angular_speed_req = cmd_vel.angular.z / 100;
-    speed_req_left = speed_req - (angular_speed_req * (myrobot.Track / 2));
-    speed_req_right = speed_req + (angular_speed_req * (myrobot.Track / 2));
-    l_rpm = (speed_req_left/myrobot.wheelDia) * (60/(2 * M_PI));
-    r_rpm = (speed_req_right/myrobot.wheelDia) * (60/(2 * M_PI));
+    speed_req = cmd_vel.linear.x;
+    angular_speed_req = cmd_vel.angular.z;
+    speed_req_left = speed_req + (angular_speed_req * (fakeTrack / 2));
+    speed_req_right = speed_req - (angular_speed_req * (fakeTrack / 2));
+    l_rpm = trunc(speed_req_left/fakewheelDia) * (60/M_PI);
+    r_rpm = trunc(speed_req_right/fakewheelDia) * (60/M_PI);
     ROS_INFO("l_rpm: %f, r_rpm: %f", l_rpm, r_rpm);
 }
 
@@ -39,6 +40,15 @@ void allTopicPublish(SerialSTM* pb, recvMessage* receive)
     pb->bumpPublish(receive);
 }
 
+uint8_t checksum(uint8_t data[], int len)
+{
+	int16_t crc = 0;
+	for(int i = 0; i < len; i++)
+	{
+		crc = (crc + data[i]) & 0xFF;
+	}
+	return crc;
+}
 
 int main(int argc, char** argv)
 {
@@ -47,7 +57,9 @@ int main(int argc, char** argv)
     SerialSTM serial("/dev/ttyUSB0", 115200);
     recvMessage recv;
     Hostmessage hostmsg;
-
+    n.param<double>("fakewheelDia", fakewheelDia, 0.1007);
+    n.param<double>("fakewheelBase", fakewheelBase, 0.240);
+    n.param<double>("fakeTrack", fakeTrack, 0.280);
     ros::Subscriber sub = n.subscribe("cmd_vel", 1000, cmd_handle);
   	std::string data, result;
     ros::Rate loop_rate(PUBLISH_RATE);
@@ -69,12 +81,12 @@ int main(int argc, char** argv)
             last_publish_time = ros::Time::now();
         }
         
-        hostmsg.Hleftspeed = -speed_req_left;
-        hostmsg.Lleftspeed = -speed_req_left;
-        hostmsg.Hrightspeed = speed_req_right;
-        hostmsg.Lrightspeed = speed_req_right;
+        hostmsg.Hleftspeed = - l_rpm;
+        hostmsg.Lleftspeed = -l_rpm;
+        hostmsg.Hrightspeed = r_rpm;
+        hostmsg.Lrightspeed = r_rpm;
         serial.putSpeed(&hostmsg);
-        if (myrobot.checksum(bufferArray, 42)){
+        if (checksum(bufferArray, 42)){
             serial.readSpeed(&recv, bufferArray);
         }
         // ROS_INFO("speed_req_left : %f", speed_req_left);

@@ -9,7 +9,6 @@
 #include <sensor_msgs/Range.h> 
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int8MultiArray.h>
-#include "config_robot.h"
 #include <deque>
 
 using namespace std;
@@ -92,7 +91,6 @@ class SerialSTM {
         uint8_t getcrc(uint8_t* Bytecode, int len);
         velocity vel;
         velocity getVelocity(double rpm1, double rpm2, double rpm3, double rpm4);
-        robot rbot;
 };
 
 

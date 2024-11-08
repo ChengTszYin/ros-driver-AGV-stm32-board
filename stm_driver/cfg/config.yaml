@@ -1,5 +1,0 @@
-robot:
-  baseType: 'differential'  
-  wheelRadius: 100.7
-  wheelBase: 500.0
-  Track: 240.0

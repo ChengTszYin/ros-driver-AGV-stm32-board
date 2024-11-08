@@ -55,15 +55,17 @@ velocity SerialSTM::getVelocity(double rpm1, double rpm2, double rpm3, double rp
     float average_rps_x;
     float average_rps_y;
     float average_rps_a;
+    // ROS_INFO("rpm1: %f rpm2: %f", rpm1, rpm2);
+    // ROS_INFO("rpm3: %f rpm4: %f", rpm3, rpm4);
 
     average_rps_x = ((float)(rpm1 + rpm2 + rpm3 + rpm4) / 4) / 60;
-    _vel.linear_x = average_rps_x * (rbot.wheelDia * M_PI);
+    _vel.linear_x = average_rps_x;
 
     average_rps_y = ((float) (-rpm1 + rpm2 + rpm3 - rpm4) / 4) / 60;
     _vel.linear_y = 0;
 
     average_rps_a = ((float)(-rpm1 + rpm2 - rpm3 + rpm4) / 4) / 60;
-    _vel.angular_z = (average_rps_a * (rbot.wheelDia * M_PI)) / ((rbot.Track / 2) + (rbot.Track / 2));
+    _vel.angular_z = average_rps_a;
     return _vel;
 }
 
