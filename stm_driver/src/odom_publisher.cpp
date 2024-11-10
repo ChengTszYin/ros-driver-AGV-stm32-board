@@ -9,9 +9,9 @@
 using namespace std;
 int PUBLISH_RATE = 80;
 
-double wheelDia = 0.01007;
-double wheelBase = 240.0;
-double Track = 280.0;
+double wheelDia = 0.1007;
+double wheelBase = 0.240;
+double Track = 0.280;
 
 double speed_act_upper_left = 0.0;
 double speed_act_upper_right = 0.0;
@@ -39,9 +39,9 @@ tf2::Quaternion odom_quat;
 void handle_speed(const geometry_msgs::Vector3Stamped vel)
 {
     ros::Time current_time = ros::Time::now();
-    linear_velocity_x_ = vel.vector.x * (wheelDia* M_PI);
+    linear_velocity_x_ = vel.vector.x * (wheelDia* M_PI / 2);
     linear_velocity_y_ = vel.vector.y;
-    angular_velocity_z_ = (vel.vector.z * (wheelDia * M_PI)) / ((Track / 2) + (Track/ 2));
+    angular_velocity_z_ = (vel.vector.z * (wheelDia * M_PI / 2)) / ((Track / 2) + ( wheelBase/ 2));
     vel_dt_ = 0.1;
     // ROS_INFO("vel_dt_: %f", vel_dt_);
     double delta_heading = angular_velocity_z_ * vel_dt_; //radians
