@@ -7,7 +7,7 @@
 
 using namespace std;
 
-double wheelDia = 100.7 / 1000.0; // Convert mm to meters
+double wheelDia = 0.1007; // Convert mm to meters
 double wheelBase = 0.240;          // Wheelbase in meters
 double Track = 0.280;               // Track width in meters
 
@@ -17,6 +17,8 @@ double dheading_ = 0.0;
 double linear_velocity_x_ = 0.0;
 double linear_velocity_y_ = 0.0;
 double angular_velocity_z_ = 0.0;
+
+double wheel_circumference_ = wheelDia * M_PI;
 
 double x_pos = 0.0;
 double y_pos = 0.0;
@@ -29,9 +31,9 @@ void handle_speed(const geometry_msgs::Vector3Stamped& vel)
     current_time = ros::Time::now();
     double dt = (current_time - speed_time).toSec(); // Get the actual elapsed time
 
-    linear_velocity_x_ = vel.vector.x; // m/s
+    linear_velocity_x_ = vel.vector.x * (wheelDia* M_PI / 2); // m/s
     linear_velocity_y_ = vel.vector.y; // m/s
-    angular_velocity_z_ = vel.vector.z; // rad/s
+    angular_velocity_z_ = (vel.vector.z * wheel_circumference_) / ((wheelBase / 2) + (Track / 2)); // rad/s
 
     // Calculate deltas based on velocities and time
     double delta_heading = angular_velocity_z_ * dt; // radians
@@ -46,11 +48,10 @@ void handle_speed(const geometry_msgs::Vector3Stamped& vel)
     // Update global position
     x_pos += dx_pos_;
     y_pos += dy_pos_;
-    theta += dheading_;
 
     // Normalize theta to the range [-pi, pi]
-    if (theta > M_PI) theta -= 2 * M_PI;
-    if (theta < -M_PI) theta += 2 * M_PI;
+    if (dheading_ > M_PI) dheading_ -= 2 * M_PI;
+    if (dheading_ < -M_PI) dheading_ += 2 * M_PI;
 
     speed_time = current_time; // Update the last speed time
 }
@@ -79,7 +80,7 @@ int main(int argc, char** argv)
         ros::spinOnce();
 
         // Prepare and publish the odometry transformation
-        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
+        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(dheading_);
         geometry_msgs::TransformStamped t;
 
         t.header.frame_id = "odom";

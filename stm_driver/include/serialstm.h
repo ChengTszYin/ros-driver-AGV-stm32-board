@@ -107,7 +107,7 @@ class SerialSTM {
         int notopen(std::string &result);
         uint8_t getcrc(uint8_t* Bytecode, int len);
         velocity vel;
-        velocity getVelocity(double rpm1, double rpm2, double rpm3, double rpm4);
+        velocity getVelocity(int rpm1, int rpm2, int rpm3, int rpm4);
 };
 
 

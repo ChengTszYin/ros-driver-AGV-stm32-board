@@ -22,8 +22,10 @@ double fakeTrack = 0.280;
 
 void cmd_handle(const geometry_msgs::Twist& cmd_vel)
 {
-    speed_req = cmd_vel.linear.x / 10;
-    angular_speed_req = cmd_vel.angular.z / 2;
+    // speed_req = cmd_vel.linear.x / 10;
+    // angular_speed_req = cmd_vel.angular.z / 2;
+    speed_req = cmd_vel.angular.z;
+    angular_speed_req = cmd_vel.linear.x;
 
     speed_req_left = speed_req + (angular_speed_req * (fakeTrack / 2));
     speed_req_right = speed_req - (angular_speed_req * (fakeTrack / 2));
