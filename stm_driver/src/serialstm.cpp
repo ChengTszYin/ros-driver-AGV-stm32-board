@@ -18,7 +18,7 @@ SerialSTM::SerialSTM(string port, int baud) : port(port), baud(baud)
         cout << "Unable to open port: " << e.what() << endl;
         throw;
     }
-    vel_pub = n_ser.advertise<geometry_msgs::Vector3Stamped> ("velocity", 1000);
+    // ser_pub = n_ser.advertise<geometry_msgs::Vector3Stamped> ("speed", 1000);
     ser_pub = n_ser.advertise<stm_driver::Wheel>("speed", 1000);
     front_pub = n_ser.advertise<sensor_msgs::Range> ("front_dist", 1000);
     back_pub = n_ser.advertise<sensor_msgs::Range> ("back_dist", 1000);
@@ -37,25 +37,6 @@ uint8_t SerialSTM::getcrc(uint8_t* Bytecode, int len)
     return sum;
 }
 
-velocity SerialSTM::getVelocity(double rpm1, double rpm2, double rpm3, double rpm4)
-{
-    velocity _vel;
-    float average_rps_x;
-    float average_rps_y;
-    float average_rps_a;
-    // ROS_INFO("rpm1: %f rpm2: %f", rpm1, rpm2);
-    // ROS_INFO("rpm3: %f rpm4: %f", rpm3, rpm4);
-
-    average_rps_x = ((float)(rpm1 + rpm2 + rpm3 + rpm4) / 4) / 60;
-    _vel.linear_x = average_rps_x;
-
-    average_rps_y = ((float) (-rpm1 + rpm2 + rpm3 - rpm4) / 4) / 60;
-    _vel.linear_y = 0;
-
-    average_rps_a = ((float)(-rpm1 + rpm2 - rpm3 + rpm4)) / 60;
-    _vel.angular_z = average_rps_a;
-    return _vel;
-}
 
 int SerialSTM::notopen(std::string &result)
 {
@@ -114,13 +95,6 @@ void SerialSTM::speedPublish(recvMessage* recvmsg, double time)
     cout << "hr_speed: " << " " << hr_speed << endl;
     cout << "ll_speed: " << " " << ll_speed << endl;
     cout << "lr_speed: " << " " << lr_speed << endl;
-
-    vel = getVelocity(hl_speed, hr_speed, ll_speed, lr_speed);
-    veloc_msgs.header.stamp = ros::Time::now();
-    veloc_msgs.vector.x = vel.linear_x;
-    veloc_msgs.vector.y = vel.linear_y;
-    veloc_msgs.vector.z = vel.angular_z;
-    vel_pub.publish(veloc_msgs);
 
     speed_msgs.header.stamp = ros::Time::now();
     speed_msgs.TopLeftWheel = lr_speed;
