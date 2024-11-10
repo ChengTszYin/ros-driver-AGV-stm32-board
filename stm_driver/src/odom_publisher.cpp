@@ -6,8 +6,8 @@
 using namespace std;
 
 double wheelDia = 0.01007/2;
-double wheelBase = 240.0;
-double Track = 280.0;
+double wheelBase = 2400.0;
+double Track = 2800.0;
 
 double speed_act_upper_left = 0.0;
 double speed_act_upper_right = 0.0;
